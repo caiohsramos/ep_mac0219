@@ -1,12 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <time.h>
+#include <omp.h>
 #include "matrix.h"
 
 
-void multiply(char *c_file, char *a_file, char *b_file, double**(*f_mul)(double**,double**,int,int,int)) {
+void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,double**,double**,int,int,int)) {
 	int m, n, p;	
+	int i;
 	double **a = read_matrix(a_file, &m, &p);
 	double **b = read_matrix(b_file, &p, &n);
+	double t;
 
 
 	//double **c = (*f_mul)(a, b, m, p, n); 
@@ -15,13 +20,30 @@ void multiply(char *c_file, char *a_file, char *b_file, double**(*f_mul)(double*
 	print_matrix(a, m, p);
 	printf("Matrix B:\n");
 	print_matrix(b, p, n);
+	//allocs matrix c
+	double **c = (double **)malloc(sizeof(double*)*m);
+	for(i = 0; i < m; i++) {
+		c[i] = (double*)malloc(sizeof(double)*n);
+	}
 
+	//regular matrix mult
+	zeros(c, m, n);
+	t = regular(c, a, b, m, p, n);
+	printf("Matrix C:\n");
+	print_matrix(c, m, n);
+	printf("Time taken by regular: %.2lf\n", t);
 
+	//optimized matrix mult
+	zeros(c, m, n);
+	t = (*f_mul)(c, a, b, m, p, n);
+	printf("Matrix C:\n");
+	print_matrix(c, m, n);
+	printf("Time taken by optimization: %.2lf\n", t);
 
 	//write_matrix(c_file, c, m, n);
 	free_matrix(a, m);
 	free_matrix(b, p);
-	//free_matrix(c, m);
+	free_matrix(c, m);
 }
 
 void print_matrix(double **mat, int m, int n) {
@@ -88,11 +110,52 @@ void write_matrix(char *file_name, double **c, int row, int col) {
 	fclose(fp);
 }
 
-double **pt(double **a, double **b, int m, int p, int n) {
+double pt(double **c, double **a, double **b, int m, int p, int n) {
+	return 0.f;
+}
+
+double omp(double **c, double **a, double **b, int m, int p, int n) {
+	clock_t t1, t2;
+	double t;
+	t1 = clock();
+
+	#pragma omp parallel
+	{
+		int i, j, k;
+		//omp matrix mutiplication
+		#pragma omp for
+		for(i = 0; i < m; i++) {
+			for(j = 0; j < n; j++) {
+				for(k = 0; k < p; k++) {
+					//c[i][j] += a[i][k] * b_t[j][k];	
+					c[i][j] += a[i][k] * b[k][j];	
+				}
+			}
+		}
+	}
+
+	t2 = clock() - t1;
+	t = ((double)t/CLOCKS_PER_SEC);
+	return t;
 
 }
 
-double **omp(double **a, double **b, int m, int p, int n) {
+double regular(double **c, double **a, double **b, int m, int p, int n) {
+	int i, j, k;
+	clock_t t1, t2;
+	double t;
+	t1 = clock();
+	//regular matrix mutiplication
+	for(i = 0; i < m; i++) {
+		for(j = 0; j < n; j++) {
+			for(k = 0; k < p; k++) {
+				c[i][j] += a[i][k] * b[k][j];	
+			}
+		}
+	}
+	t2 = clock() - t1;
+	t = ((double)t/CLOCKS_PER_SEC);
+	return t;
 
 }
 
