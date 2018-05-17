@@ -11,7 +11,18 @@ void zeros(double **, int, int);
 void free_matrix(double **, int );
 void print_matrix(double **, int, int);
 void transpose(double **, double **, int , int );
+void *thread_mult(void *);
+int compare_matrix(double **, double **, int , int );
 
+typedef struct {
+	int t_id;
+	double **c;
+	double **a;
+	double **b;
+	int m;
+	int n;
+	int p;
+} ARGS;
 
 
 #endif
