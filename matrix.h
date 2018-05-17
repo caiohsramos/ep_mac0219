@@ -10,6 +10,8 @@ double regular(double **c, double **a, double **b, int m, int p, int n);
 void zeros(double **, int, int);
 void free_matrix(double **, int );
 void print_matrix(double **, int, int);
+void tranpose(double **, double **, int , int );
+
 
 
 #endif

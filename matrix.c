@@ -73,7 +73,7 @@ double **read_matrix(char *file_name, int *row, int *col) {
 	}
 	zeros(m, *row, *col);
 	while((fscanf(fp, "%d%d%lf", &i, &j, &val)) != EOF) {
-		m[i][j] = val;		
+		m[i-1][j-1] = val;		
 	}
 
 	fclose(fp);
@@ -106,8 +106,15 @@ void write_matrix(char *file_name, double **c, int row, int col) {
 	for(i = 0; i < row; i++)
 		for(j = 0; j < col; j++)
 			if(c[i][j] != 0)
-				fprintf(fp, "%d %d %lf\n", i, j, c[i][j]);
+				fprintf(fp, "%d %d %lf\n", i+1, j+1, c[i][j]);
 	fclose(fp);
+}
+
+void tranpose(double **b_t, double **b, int m, int n) {
+	int i, j;
+	for(i = 0; i < m; i++) 
+		for(j = 0; j < n; j++)
+			b_t[i][j] = b[j][i];
 }
 
 double pt(double **c, double **a, double **b, int m, int p, int n) {
@@ -117,8 +124,9 @@ double pt(double **c, double **a, double **b, int m, int p, int n) {
 double omp(double **c, double **a, double **b, int m, int p, int n) {
 	clock_t t1, t2;
 	double t;
+	//transpose matrix b here .....
+	
 	t1 = clock();
-
 	#pragma omp parallel
 	{
 		int i, j, k;
