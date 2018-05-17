@@ -16,10 +16,10 @@ void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,
 
 	//double **c = (*f_mul)(a, b, m, p, n); 
 
-	printf("Matrix A:\n");
-	print_matrix(a, m, p);
-	printf("Matrix B:\n");
-	print_matrix(b, p, n);
+	/*printf("Matrix A:\n");*/
+	/*print_matrix(a, m, p);*/
+	/*printf("Matrix B:\n");*/
+	/*print_matrix(b, p, n);*/
 	//allocs matrix c
 	double **c = (double **)malloc(sizeof(double*)*m);
 	for(i = 0; i < m; i++) {
@@ -29,21 +29,24 @@ void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,
 	//regular matrix mult
 	zeros(c, m, n);
 	t = regular(c, a, b, m, p, n);
-	printf("Matrix C:\n");
-	print_matrix(c, m, n);
-	printf("Time taken by regular: %.2lf\n", t);
+	//printf("Matrix C:\n");
+	//print_matrix(c, m, n);
+	printf("Time taken by regular: %lf\n", t);
 
 	//optimized matrix mult
 	zeros(c, m, n);
 	t = (*f_mul)(c, a, b, m, p, n);
-	printf("Matrix C:\n");
-	print_matrix(c, m, n);
-	printf("Time taken by optimization: %.2lf\n", t);
+	//printf("Matrix C:\n");
+	//print_matrix(c, m, n);
+	printf("Time taken by optimization: %lf\n", t);
 
 	//write_matrix(c_file, c, m, n);
 	free_matrix(a, m);
+	free(a);
 	free_matrix(b, p);
+	free(b);
 	free_matrix(c, m);
+	free(c);
 }
 
 void print_matrix(double **mat, int m, int n) {
@@ -110,7 +113,7 @@ void write_matrix(char *file_name, double **c, int row, int col) {
 	fclose(fp);
 }
 
-void tranpose(double **b_t, double **b, int m, int n) {
+void transpose(double **b_t, double **b, int m, int n) {
 	int i, j;
 	for(i = 0; i < m; i++) 
 		for(j = 0; j < n; j++)
@@ -122,11 +125,17 @@ double pt(double **c, double **a, double **b, int m, int p, int n) {
 }
 
 double omp(double **c, double **a, double **b, int m, int p, int n) {
-	clock_t t1, t2;
-	double t;
-	//transpose matrix b here .....
+	double t, wtime, sum;
 	
-	t1 = clock();
+	//transpose matrix b here .....
+	double **b_t = (double**)malloc(sizeof(double*)*p);
+	int i;
+	for(i = 0; i < p; i++) {
+		b_t[i] = (double*)malloc(sizeof(double)*n);
+	}
+	transpose(b_t, b, p, n);
+	
+	wtime = omp_get_wtime();
 	#pragma omp parallel
 	{
 		int i, j, k;
@@ -135,16 +144,16 @@ double omp(double **c, double **a, double **b, int m, int p, int n) {
 		for(i = 0; i < m; i++) {
 			for(j = 0; j < n; j++) {
 				for(k = 0; k < p; k++) {
-					//c[i][j] += a[i][k] * b_t[j][k];	
-					c[i][j] += a[i][k] * b[k][j];	
+					c[i][j] += a[i][k] * b_t[j][k];	
+					//c[i][j] += a[i][k] * b[k][j];	
 				}
 			}
 		}
 	}
-
-	t2 = clock() - t1;
-	t = ((double)t/CLOCKS_PER_SEC);
-	return t;
+	wtime = omp_get_wtime() - wtime;
+	free_matrix(b_t, p);
+	free(b_t);
+	return wtime;
 
 }
 
@@ -152,17 +161,25 @@ double regular(double **c, double **a, double **b, int m, int p, int n) {
 	int i, j, k;
 	clock_t t1, t2;
 	double t;
+	/*//transpose matrix b here .....*/
+	/*double **b_t = (double**)malloc(sizeof(double*)*p);*/
+	/*for(i = 0; i < p; i++) {*/
+		/*b_t[i] = (double*)malloc(sizeof(double)*n);*/
+	/*}*/
+	/*transpose(b_t, b, p, n);*/
 	t1 = clock();
 	//regular matrix mutiplication
 	for(i = 0; i < m; i++) {
 		for(j = 0; j < n; j++) {
 			for(k = 0; k < p; k++) {
 				c[i][j] += a[i][k] * b[k][j];	
+				//c[i][j] += a[i][k] * b_t[j][k];	
 			}
 		}
 	}
 	t2 = clock() - t1;
-	t = ((double)t/CLOCKS_PER_SEC);
+	t = ((double)t2/CLOCKS_PER_SEC);
+	//free_matrix(b_t, p);
 	return t;
 
 }
