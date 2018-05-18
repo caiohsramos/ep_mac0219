@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
@@ -16,15 +15,16 @@ void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,
 
 
 	//allocs matrix c
-	double **c = (double **)malloc(sizeof(double*)*m);
-	for(i = 0; i < m; i++) {
-		c[i] = (double*)malloc(sizeof(double)*n);
-	}
+	/*double **c = (double **)malloc(sizeof(double*)*m);*/
+	/*for(i = 0; i < m; i++) {*/
+		/*c[i] = (double*)malloc(sizeof(double)*n);*/
+	/*}*/
 
-	//regular matrix mult
+	/*regular matrix mult
 	zeros(c, m, n);
 	t = regular(c, a, b, m, p, n);
 	printf("Time taken by regular: %lf\n", t);
+	*/
 
 	//temporary
 	double **c_aux = (double **)malloc(sizeof(double*)*m);
@@ -34,18 +34,24 @@ void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,
 
 	//optimized matrix mult
 	zeros(c_aux, m, n);
-	t = (*f_mul)(c_aux, a, b, m, p, n);
+	if((m > 30) || (n > 30) || (p > 30)) 
+		t = (*f_mul)(c_aux, a, b, m, p, n);
+	else {
+		printf("Small size, using regular algorithm\n");
+		t = regular(c_aux, a, b, m, p, n);
+	}
+			
 	printf("Time taken by optimization: %lf\n", t);
 
-	printf("Result of correctness %d\n", compare_matrix(c, c_aux, m, n));
+	//printf("Result of correctness %d\n", compare_matrix(c, c_aux, m, n));
 
-	//write_matrix(c_file, c, m, n);
+	write_matrix(c_file, c_aux, m, n);
 	free_matrix(a, m);
 	free(a);
 	free_matrix(b, p);
 	free(b);
-	free_matrix(c, m);
-	free(c);
+	//free_matrix(c, m);
+	//free(c);
 	
 	//temporary
 	free_matrix(c_aux, m);
