@@ -1,0 +1,33 @@
+Caio Henrique Silva Ramos - NUSP 9292991
+
+Começando pela implementação do algortimo usando OpenMP. 
+Foram usadas as diretivas:
+	*omp parallel;
+	*omp for.
+Declaramos as variáveis indexadoras i, j, k dentro do trecho a 
+ser paralelizado para uma maior otimização. Além disso, antes de
+começarmos o processamento, a matrix B foi transposta para redução
+do número de 'cache misses'. Dessa forma poderíamos percorre-lá por
+linhas e não por colunas como aconteceria antes da tranposição.
+
+Já na paralelização usando pthreads, a técnica usada foi: dividir
+o processamento dos valores da matriz C (resultado) em 4 threads.
+Isto é, cada thread fica responsável por preencher 1/4 das linhas
+do resultado. Assim, não temos seções críticas (o que pode 
+potencialmente travar as threads por esperas desnecessárias. Para 
+essa técnica calculamos um novo indexador i para as linha e um novo
+max_i para sabermos os limites de cada threads. A última thread fará
+o trabalho que fica faltando caso M % 4 diferente de 0. 
+
+Podemos resaltar que por meio de testes, não vale a pena usar um 
+algoritmo paralelizado para M, N e P menores que 30. Neste casa, usaremos
+o algoritmo trivial de multiplicação O(n^3), e o usuario será notificado
+de que o algoritmo escolhido não foi usado.
+
+Para compilar usar:
+	$make
+Para executar usar:
+	./main <implementação> <caminho_matr_A> <caminho_matr_B> <caminho_matr_C>
+onde <implementação> pode ser 'o' para OpenMP, ou 'p' para pthreads.
+
+
