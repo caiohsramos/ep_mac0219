@@ -1,3 +1,6 @@
+//Caio Henrique Silva Ramos - NUSP 9292991
+//Some parts of the code are commented because they were used
+//	as tests or result of correctness
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -5,26 +8,24 @@
 #include <omp.h>
 #include "matrix.h"
 
-void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,double**,double**,int,int,int)) {
-	int m, n, p;	
-	int i;
+void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,double**,double**,long int,long int,long int)) {
+	long int m, n, p;	
+	long int i;
 	double **a = read_matrix(a_file, &m, &p);
 	double **b = read_matrix(b_file, &p, &n);
 	double t;
-
-
-
+	
 	//allocs matrix c
 	/*double **c = (double **)malloc(sizeof(double*)*m);*/
 	/*for(i = 0; i < m; i++) {*/
 		/*c[i] = (double*)malloc(sizeof(double)*n);*/
 	/*}*/
 
-	/*regular matrix mult
-	zeros(c, m, n);
-	t = regular(c, a, b, m, p, n);
-	printf("Time taken by regular: %lf\n", t);
-	*/
+	//regular matrix mult
+	/*zeros(c, m, n);*/
+	/*t = regular(c, a, b, m, p, n);*/
+	/*printf("Time taken by regular: %lf\n", t);*/
+	
 
 	//temporary
 	double **c_aux = (double **)malloc(sizeof(double*)*m);
@@ -43,23 +44,23 @@ void multiply(char *c_file, char *a_file, char *b_file, double(*f_mul)(double**,
 			
 	printf("Time taken by optimization: %lf\n", t);
 
-	//printf("Result of correctness %d\n", compare_matrix(c, c_aux, m, n));
+	/*printf("Result of correctness %ld\n", compare_matrix(c, c_aux, m, n));*/
 
 	write_matrix(c_file, c_aux, m, n);
 	free_matrix(a, m);
 	free(a);
 	free_matrix(b, p);
 	free(b);
-	//free_matrix(c, m);
-	//free(c);
+	/*free_matrix(c, m);*/
+	/*free(c);*/
 	
 	//temporary
 	free_matrix(c_aux, m);
 	free(c_aux);
 }
 
-int compare_matrix(double **a, double **b, int m, int n) {
-	int i, j;
+long int compare_matrix(double **a, double **b, long int m, long int n) {
+	long int i, j;
 	for(i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 			if(a[i][j] != b[i][j])
@@ -67,8 +68,8 @@ int compare_matrix(double **a, double **b, int m, int n) {
 	return 1;
 }
 
-void print_matrix(double **mat, int m, int n) {
-	int i, j;
+void print_matrix(double **mat, long int m, long int n) {
+	long int i, j;
 	for(i = 0; i < m; i++) {
 		for(j = 0; j < n; j++)
 			printf("%.2lf ", mat[i][j]);
@@ -77,23 +78,23 @@ void print_matrix(double **mat, int m, int n) {
 	printf("\n");
 }
 
-double **read_matrix(char *file_name, int *row, int *col) {
+double **read_matrix(char *file_name, long int *row, long int *col) {
 	FILE *fp = NULL;
-	int i, j;
+	long int i, j;
 	double val;
 	fp = fopen(file_name, "r+");	
 	if(fp == NULL) {
 		printf("Could not open file %s\n", file_name);
 		exit(1);
 	}	
-	fscanf(fp, "%d", row);
-	fscanf(fp, "%d", col);
+	fscanf(fp, "%ld", row);
+	fscanf(fp, "%ld", col);
 	double **m = (double **)malloc(sizeof(double*)*(*row));
 	for(i = 0; i < (*row); i++) {
 		m[i] = (double*)malloc(sizeof(double)*(*col));
 	}
 	zeros(m, *row, *col);
-	while((fscanf(fp, "%d%d%lf", &i, &j, &val)) != EOF) {
+	while((fscanf(fp, "%ld%ld%lf", &i, &j, &val)) != EOF) {
 		m[i-1][j-1] = val;		
 	}
 
@@ -101,38 +102,38 @@ double **read_matrix(char *file_name, int *row, int *col) {
 	return m;
 }
 
-void zeros(double **mat, int m, int n) {
-	int i, j;
+void zeros(double **mat, long int m, long int n) {
+	long int i, j;
 	for(i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 			mat[i][j] = 0.f;
 }
 
-void free_matrix(double **mat, int row) {
-	int i;
+void free_matrix(double **mat, long int row) {
+	long int i;
 	for(i = 0; i < row; i++)
 		free(mat[i]);
 }
 
-void write_matrix(char *file_name, double **c, int row, int col) {
-	int i, j;
+void write_matrix(char *file_name, double **c, long int row, long int col) {
+	long int i, j;
 	FILE *fp = NULL;
 	fp = fopen(file_name, "w+");
 	if(fp == NULL) {
 		printf("Could not open file: %s\n", file_name);
 		exit(0);
 	}	
-	fprintf(fp, "%d %d\n", row, col);
+	fprintf(fp, "%ld %ld\n", row, col);
 
 	for(i = 0; i < row; i++)
 		for(j = 0; j < col; j++)
 			if(c[i][j] != 0)
-				fprintf(fp, "%d %d %lf\n", i+1, j+1, c[i][j]);
+				fprintf(fp, "%ld %ld %lf\n", i+1, j+1, c[i][j]);
 	fclose(fp);
 }
 
-void transpose(double **b_t, double **b, int m, int n) {
-	int i, j;
+void transpose(double **b_t, double **b, long int m, long int n) {
+	long int i, j;
 	for(i = 0; i < m; i++) 
 		for(j = 0; j < n; j++)
 			b_t[j][i] = b[i][j];
@@ -140,7 +141,7 @@ void transpose(double **b_t, double **b, int m, int n) {
 
 void *thread_mult(void *arg) {
 	ARGS *t_arg = (ARGS*)arg;	
-	int m, n, p, id;
+	long int m, n, p, id;
 	double **a = t_arg->a;
 	double **b = t_arg->b;
 	double **c = t_arg->c;
@@ -149,12 +150,16 @@ void *thread_mult(void *arg) {
 	p = t_arg->p;
 	id = t_arg->t_id;
 
-	int i, j, k;
-	int	new_m;
-	int start_i;
+	long int i, j, k;
+	long int	new_m;
+	long int start_i;
 	//do the calculation of limits
 	start_i = (m/4)*id;
-	new_m = (m/4)*(id+1);
+	if(id != 3) new_m = (m/4)*(id+1);
+	else new_m = m;
+
+	printf("id: %ld, start_i: %ld\n", id, start_i);
+	printf("id: %ld, new_m: %ld\n", id, new_m);
 
 	for(i = start_i; i < new_m; i++) {
 		for(j = 0; j < n; j++) {
@@ -169,8 +174,8 @@ void *thread_mult(void *arg) {
 	
 }	
 
-double pt(double **c, double **a, double **b, int m, int p, int n) {
-	int i;
+double pt(double **c, double **a, double **b, long int m, long int p, long int n) {
+	long int i;
 	double wtime;
 	pthread_t threads[4];
 	ARGS t_args[4];
@@ -204,12 +209,12 @@ double pt(double **c, double **a, double **b, int m, int p, int n) {
 
 
 
-double omp(double **c, double **a, double **b, int m, int p, int n) {
+double omp(double **c, double **a, double **b, long int m, long int p, long int n) {
 	double t, wtime, sum;
 	
 	//transpose matrix b here .....
 	double **b_t = (double**)malloc(sizeof(double*)*n);
-	int i;
+	long int i;
 	for(i = 0; i < n; i++) {
 		b_t[i] = (double*)malloc(sizeof(double)*p);
 	}
@@ -218,7 +223,7 @@ double omp(double **c, double **a, double **b, int m, int p, int n) {
 	wtime = omp_get_wtime();
 	#pragma omp parallel
 	{
-		int i, j, k;
+		long int i, j, k;
 		//omp matrix mutiplication
 		#pragma omp for
 		for(i = 0; i < m; i++) {
@@ -237,8 +242,8 @@ double omp(double **c, double **a, double **b, int m, int p, int n) {
 
 }
 
-double regular(double **c, double **a, double **b, int m, int p, int n) {
-	int i, j, k;
+double regular(double **c, double **a, double **b, long int m, long int p, long int n) {
+	long int i, j, k;
 	double wtime;
 	//transpose matrix b here .....
 	double **b_t = (double**)malloc(sizeof(double*)*n);
