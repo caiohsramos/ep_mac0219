@@ -158,8 +158,6 @@ void *thread_mult(void *arg) {
 	if(id != 3) new_m = (m/4)*(id+1);
 	else new_m = m;
 
-	printf("id: %ld, start_i: %ld\n", id, start_i);
-	printf("id: %ld, new_m: %ld\n", id, new_m);
 
 	for(i = start_i; i < new_m; i++) {
 		for(j = 0; j < n; j++) {
